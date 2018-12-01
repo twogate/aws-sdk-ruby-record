@@ -181,7 +181,7 @@ module Aws
       #
       # @return [Aws::DynamoDB::Client] the Amazon DynamoDB client instance.
       def dynamodb_client
-        @dynamodb_client ||= configure_client
+        @dynamodb_client ||= Aws::Record.dynamodb_client
       end
 
       # Turns off mutation tracking for all attributes in the model.
@@ -218,6 +218,10 @@ module Aws
           " aws-record/#{VERSION}"
         end
       end
+    end
+    
+    class << self
+      attr_accessor :dynamodb_client
     end
   end
 end
