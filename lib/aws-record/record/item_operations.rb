@@ -442,8 +442,14 @@ module Aws
             request_opts[:update_expression] = uex
             request_opts[:expression_attribute_names] = exp_attr_names
             request_opts[:expression_attribute_values] = exp_attr_values unless exp_attr_values.empty?
+            request_opts[:return_values] = 'ALL_NEW'
           end
-          dynamodb_client.update_item(request_opts)
+          resp = dynamodb_client.update_item(request_opts)
+          if resp.attributes.nil?
+            nil
+          else
+            build_item_from_resp(resp)
+          end
         end
 
         private
@@ -485,10 +491,15 @@ module Aws
         end
 
         def build_item_from_resp(resp)
+          item_attr = if resp.data.class == Aws::DynamoDB::Types::UpdateItemOutput
+            resp.attributes
+          else
+            resp.item
+          end
           record = new
           data = record.instance_variable_get("@data")
           attributes.attributes.each do |name, attr|
-            data.set_attribute(name, attr.extract(resp.item))
+            data.set_attribute(name, attr.extract(item_attr))
             data.new_record = false
           end
           record
